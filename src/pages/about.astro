@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Socials from '../components/Socials.astro';
 import Icon from '../components/Icon.astro';
-import { SITE, TIMELINE, SKILLS, PHOTO } from '../config';
+import { SITE, TIMELINE, SKILLS, PHOTO, AWARDS, LANGUAGES } from '../config';
 import { url } from '../lib/url';
 import { Content as Bio } from '../data/about.md';
 ---
@@ -26,7 +26,7 @@ import { Content as Bio } from '../data/about.md';
 
     <div class="main">
       <p class="eyebrow">Обо мне</p>
-      <h1>Математика, код и&nbsp;визуализация</h1>
+      <h1>Математика, физика и&nbsp;машинное обучение</h1>
       <div class="prose bio"><Bio /></div>
 
       <h2 class="sub">Путь</h2>
@@ -42,6 +42,24 @@ import { Content as Bio } from '../data/about.md';
           </li>
         ))}
       </ol>
+
+      <h2 class="sub">Награды и гранты</h2>
+      <ul class="awards">
+        {AWARDS.map((a) => (
+          <li>
+            <span class="period">{a.year}</span>
+            <div>
+              <p class="t-title">{a.title}</p>
+              {a.note && <p class="t-note">{a.note}</p>}
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <h2 class="sub">Языки</h2>
+      <ul class="langs">
+        {LANGUAGES.map((l) => <li><span>{l.name}</span><span class="lvl">{l.level}</span></li>)}
+      </ul>
 
       <h2 class="sub">Инструменты</h2>
       <ul class="skills">{SKILLS.map((s) => <li>{s}</li>)}</ul>
@@ -86,6 +104,13 @@ import { Content as Bio } from '../data/about.md';
   .t-place { margin: 2px 0 0; color: var(--ink-2); font-size: 15px; }
   .t-note { margin: 6px 0 0; color: var(--ink-3); font-size: 14.5px; }
 
+  .awards { list-style: none; padding: 0; margin: 0; }
+  .awards li { display: grid; grid-template-columns: 150px 1fr; gap: 20px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .awards li:last-child { border-bottom: 1px solid var(--line); }
+  .awards .t-note { margin-top: 2px; }
+  .langs { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .langs li { display: inline-flex; gap: 10px; align-items: center; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); font-size: 14px; }
+  .langs .lvl { color: var(--ink-3); font: 12px var(--font-mono); }
   .skills { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
   .skills li { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); font: 13px var(--font-mono); color: var(--ink-2); }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 56px; }
@@ -98,6 +123,6 @@ import { Content as Bio } from '../data/about.md';
   @media (max-width: 520px) {
     .side { grid-template-columns: 1fr; }
     .portrait { max-width: 180px; }
-    .timeline li { grid-template-columns: 1fr; gap: 4px; }
+    .timeline li, .awards li { grid-template-columns: 1fr; gap: 4px; }
   }
 </style>

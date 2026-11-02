@@ -16,11 +16,11 @@ const profileLinks = [
   PROFILES.elibrary && { label: 'eLIBRARY', href: PROFILES.elibrary, icon: 'elibrary' },
 ].filter(Boolean) as { label: string; href: string; icon: string }[];
 ---
-<BaseLayout title="Научные труды" description="Статьи, препринты, доклады и диссертации — с открытыми PDF, DOI и BibTeX.">
+<BaseLayout title="Научные труды" description="Статьи и доклады по вычислительной электродинамике и задачам дифракции в волноводах, работы по математике слот-игр.">
   <section class="container head">
     <p class="eyebrow">Научные труды</p>
-    <h1>Статьи, препринты и&nbsp;доклады</h1>
-    <p class="lead muted">Работы в открытом доступе — с PDF, кодом и BibTeX для цитирования. Полный и актуальный список — в профилях:</p>
+    <h1>Статьи, доклады и&nbsp;отчёты</h1>
+    <p class="lead muted">Вычислительная электродинамика и задачи дифракции в волноводах, математика слот-игр. Для каждой работы можно скопировать BibTeX. Полный список — в профиле:</p>
     {profileLinks.length > 0 && (
       <div class="profiles">
         {profileLinks.map((l) => (

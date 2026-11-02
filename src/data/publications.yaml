@@ -1,87 +1,152 @@
 # ════════════════════════════════════════════════════════════════
 #  СПИСОК НАУЧНЫХ ТРУДОВ
-#  Это ПРИМЕРЫ — замените на реальные работы.
 #
 #  Поля:
 #    id        — уникальный идентификатор (латиница, без пробелов)
 #    title     — название
-#    authors   — список авторов (ваше имя выделится автоматически, см. AUTHOR_ALIASES в src/config.ts)
+#    authors   — список авторов (имя Вадима выделится автоматически, см. AUTHOR_ALIASES в src/config.ts)
 #    venue     — журнал / конференция / издательство
 #    year      — год
-#    type      — article | conference | preprint | thesis | book | talk
-#    selected  — true, чтобы показать на главной
-#    open      — true, если работа в открытом доступе
+#    type      — article | conference | preprint | thesis | book | talk | report
+#    selected  — true, чтобы показать на главной (лучше 3 работы)
+#    open      — true, если работа в открытом доступе (появится зелёная метка)
 #    abstract  — аннотация (необязательно)
 #    links     — pdf, doi, arxiv, code, slides, url (любые необязательны).
 #                Номер arXiv пишите в кавычках: arxiv: "2501.00010"
 #                PDF можно положить в папку public/papers/ и указать: pdf: papers/file.pdf
-#    bibtex    — BibTeX-запись (необязательно, появится кнопка «Цитировать»)
+#    bibtex    — BibTeX-запись (необязательно, появится кнопка «BibTeX»)
 # ════════════════════════════════════════════════════════════════
 
-- id: example-2026-dynamics
-  title: Устойчивость периодических режимов в нелинейных системах с запаздыванием
-  authors: [В. Ващенко, А. Соавтор, Б. Соавтор]
-  venue: Журнал вычислительной математики и математической физики
-  year: 2026
-  type: article
-  selected: true
-  abstract: >
-    Пример аннотации. Исследуется устойчивость периодических решений для класса
-    нелинейных дифференциальных уравнений с запаздыванием. Предложен численный
-    метод, основанный на спектральной дискретизации оператора монодромии.
-  links:
-    doi: 10.0000/example.2026.001
-    pdf: https://example.com/paper.pdf
-    code: https://github.com/
-  bibtex: |
-    @article{vashchenko2026stability,
-      title   = {Устойчивость периодических режимов в нелинейных системах с запаздыванием},
-      author  = {Ващенко, В. and Соавтор, А. and Соавтор, Б.},
-      journal = {Журнал вычислительной математики и математической физики},
-      year    = {2026}
-    }
+# ─────────────── Вычислительная электродинамика ───────────────
 
-- id: example-2025-pinn
-  title: Physics-informed neural networks for stiff reaction–diffusion problems
-  authors: [V. Vashchenko, C. Coauthor]
-  venue: arXiv preprint
-  year: 2025
-  type: preprint
-  selected: true
-  abstract: >
-    Example abstract. We study training pathologies of physics-informed neural
-    networks on stiff reaction–diffusion systems and propose an adaptive
-    collocation strategy with provable convergence guarantees.
-  links:
-    arxiv: "2501.00000"
-    code: https://github.com/
-
-- id: example-2024-conf
-  title: Адаптивные сетки для задач с пограничным слоем
-  authors: [В. Ващенко]
-  venue: Международная конференция по вычислительной математике, Новосибирск
-  year: 2024
+- id: mmet-2010-lsm
+  title: Scattering of LSM modes in an E-plane two-port waveguide junction with triangular connecting cavity
+  authors: [V. V. Vashchenko, V. P. Chumachenko]
+  venue: Proceedings of the 13th International Conference on Mathematical Methods in Electromagnetic Theory (MMET), paper AR-3
+  year: 2010
   type: conference
   selected: true
-  links:
-    pdf: https://example.com/conf.pdf
-    slides: https://example.com/slides.pdf
+  bibtex: |
+    @inproceedings{vashchenko2010lsm,
+      title     = {Scattering of {LSM} modes in an {E}-plane two-port waveguide junction with triangular connecting cavity},
+      author    = {Vashchenko, V. V. and Chumachenko, V. P.},
+      booktitle = {Proc. 13th Int. Conf. on Mathematical Methods in Electromagnetic Theory (MMET)},
+      pages     = {AR-3},
+      year      = {2010}
+    }
 
-- id: example-2023-thesis
-  title: Численные методы для сингулярно возмущённых задач
-  authors: [В. Ващенко]
-  venue: Магистерская диссертация, Университет
-  year: 2023
-  type: thesis
-  links:
-    pdf: https://example.com/thesis.pdf
+- id: msmw-2010-triangular
+  title: On mathematical modeling of a triangular building block in the analysis of E-plane waveguide structures
+  authors: [V. V. Vashchenko, V. P. Chumachenko]
+  venue: Proceedings of the 7th International Kharkov Symposium on Physics and Engineering of Microwaves, Millimeter and Submillimeter Waves (MSMW), Kharkiv
+  year: 2010
+  type: conference
+  bibtex: |
+    @inproceedings{vashchenko2010msmw,
+      title     = {On mathematical modeling of a triangular building block in the analysis of {E}-plane waveguide structures},
+      author    = {Vashchenko, V. V. and Chumachenko, V. P.},
+      booktitle = {Proc. 7th Int. Kharkov Symposium on Physics and Engineering of Microwaves, Millimeter and Submillimeter Waves (MSMW)},
+      address   = {Kharkiv, Ukraine},
+      year      = {2010}
+    }
 
-- id: example-2023-talk
-  title: Визуализация динамических систем в браузере с помощью WebGL
-  authors: [В. Ващенко]
-  venue: Научный семинар кафедры
-  year: 2023
-  type: talk
-  open: true
-  links:
-    slides: https://example.com/talk.pdf
+- id: riu-2010-jump
+  title: Scattering matrix of a jump of medium parameters in a rectangular waveguide
+  authors: [V. V. Vashchenko, V. P. Chumachenko]
+  venue: Радіоелектроніка, інформатика, управління, № 2
+  year: 2010
+  type: article
+  selected: true
+  bibtex: |
+    @article{vashchenko2010jump,
+      title   = {Scattering matrix of a jump of medium parameters in a rectangular waveguide},
+      author  = {Vashchenko, V. V. and Chumachenko, V. P.},
+      journal = {Radio Electronics, Computer Science, Control},
+      number  = {2},
+      year    = {2010}
+    }
+
+- id: riu-2010-field
+  title: О выборе представления поля для базовой треугольной области в задачах моделирования Н-плоскостных волноводных узлов
+  authors: [В. П. Чумаченко, В. В. Ващенко]
+  venue: Радіоелектроніка, інформатика, управління, № 1, с. 5–10
+  year: 2010
+  type: article
+  bibtex: |
+    @article{chumachenko2010field,
+      title   = {О выборе представления поля для базовой треугольной области в задачах моделирования {Н}-плоскостных волноводных узлов},
+      author  = {Чумаченко, В. П. and Ващенко, В. В.},
+      journal = {Радіоелектроніка, інформатика, управління},
+      number  = {1},
+      pages   = {5--10},
+      year    = {2010}
+    }
+
+- id: dnu-2010-model
+  title: О построении математической модели базовой треугольной области в задачах анализа плоскостных волноводных узлов
+  authors: [В. П. Чумаченко, В. В. Ващенко]
+  venue: Вісник Дніпропетровського національного університету. Фізика. Радіоелектроніка
+  year: 2010
+  type: article
+  bibtex: |
+    @article{chumachenko2010model,
+      title   = {О построении математической модели базовой треугольной области в задачах анализа плоскостных волноводных узлов},
+      author  = {Чумаченко, В. П. and Ващенко, В. В.},
+      journal = {Вісник Дніпропетровського національного університету. Фізика. Радіоелектроніка},
+      year    = {2010}
+    }
+
+- id: mmet-2008-smatrix
+  title: S-matrix of a two-port waveguide junction with triangular connecting cavity
+  authors: [V. V. Vashchenko, V. P. Chumachenko]
+  venue: Proceedings of the 12th International Conference on Mathematical Methods in Electromagnetic Theory (MMET), pp. 158–160, Odesa
+  year: 2008
+  type: conference
+  selected: true
+  bibtex: |
+    @inproceedings{vashchenko2008smatrix,
+      title     = {S-matrix of a two-port waveguide junction with triangular connecting cavity},
+      author    = {Vashchenko, V. V. and Chumachenko, V. P.},
+      booktitle = {Proc. 12th Int. Conf. on Mathematical Methods in Electromagnetic Theory (MMET)},
+      pages     = {158--160},
+      address   = {Odesa, Ukraine},
+      year      = {2008}
+    }
+
+- id: riu-2007-domain-product
+  title: Решение методом произведения областей Н-плоскостной задачи дифракции волн на наклонной границе раздела диэлектрических сред в прямоугольном волноводе
+  authors: [В. П. Чумаченко, В. В. Ващенко]
+  venue: Радіоелектроніка, інформатика, управління, с. 5–9
+  year: 2007
+  type: article
+  bibtex: |
+    @article{chumachenko2007domain,
+      title   = {Решение методом произведения областей {Н}-плоскостной задачи дифракции волн на наклонной границе раздела диэлектрических сред в прямоугольном волноводе},
+      author  = {Чумаченко, В. П. and Ващенко, В. В.},
+      journal = {Радіоелектроніка, інформатика, управління},
+      pages   = {5--9},
+      year    = {2007}
+    }
+
+# ─────────────── Математика слот-игр (закрытые отчёты) ───────────────
+
+- id: slots-2018-achievements
+  title: On achievements in slot games
+  authors: [V. V. Vashchenko]
+  venue: Закрытый отчёт
+  year: 2018
+  type: report
+
+- id: slots-2017-stacked
+  title: Effective computational algorithms for slot games with stacked reels
+  authors: [V. V. Vashchenko]
+  venue: Закрытый отчёт
+  year: 2017
+  type: report
+
+- id: slots-2017-freespins
+  title: Slot games with free spins
+  authors: [V. V. Vashchenko]
+  venue: Закрытый отчёт
+  year: 2017
+  type: report

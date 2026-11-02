@@ -16,8 +16,8 @@ const posts = (await getCollection('blog', (p) => !p.data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
 const stats = [
-  { n: pubs.filter((p) => p.data.type !== 'talk').length, l: 'публикаций' },
-  { n: pubs.filter((p) => p.data.type === 'talk' || p.data.type === 'conference').length, l: 'докладов' },
+  { n: pubs.filter((p) => !['talk', 'report'].includes(p.data.type)).length, l: 'научных публикаций' },
+  { n: pubs.filter((p) => p.data.type === 'talk' || p.data.type === 'conference').length, l: 'докладов на конференциях' },
   { n: (await getCollection('blog', (p) => !p.data.draft)).length, l: 'записей в блоге' },
 ];
 ---

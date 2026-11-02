@@ -20,10 +20,10 @@ const publications = defineCollection({
     authors: z.array(z.string()),
     venue: z.string(),
     year: z.number(),
-    type: z.enum(['article', 'conference', 'preprint', 'thesis', 'book', 'talk']),
+    type: z.enum(['article', 'conference', 'preprint', 'thesis', 'book', 'talk', 'report']),
     abstract: z.string().optional(),
     selected: z.boolean().default(false),
-    open: z.boolean().default(true),
+    open: z.boolean().default(false),
     links: z
       .object({
         pdf: z.string().optional(),
