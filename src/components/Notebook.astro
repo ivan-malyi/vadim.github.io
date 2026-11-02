@@ -1,0 +1,270 @@
+---
+/**
+ * Интерактивная рабочая книга: редактируемые ячейки JavaScript, которые
+ * выполняются прямо в браузере и разделяют общее состояние.
+ *
+ * <Notebook title="..." cells={[`a = 2`, `print(a * 21)`, `plot(x => sin(a*x), 0, 10)`]} />
+ *
+ * В ячейках доступны:
+ *   print(...v)              — вывести значения
+ *   plot(f, a, b, opts?)     — график функции на [a, b]
+ *   plot(xs, ys, opts?)      — график по массивам
+ *   plot([{x, y, label, kind:'scatter'}], opts?) — несколько рядов
+ *   table(rows)              — таблица из массива объектов
+ *   html(str)                — произвольный HTML
+ *   linspace(a, b, n), range(n), sum(arr), mean(arr)
+ *   sin, cos, exp, sqrt, PI ... — все функции Math без префикса
+ *   await                    — можно использовать на верхнем уровне
+ * Переменные, объявленные на верхнем уровне (x = …, let/const x = …), видны в следующих ячейках.
+ */
+interface Props {
+  title?: string;
+  cells: string[];
+  autorun?: boolean;
+}
+const { title = 'Рабочая книга', cells, autorun = true } = Astro.props;
+---
+<section class="widget nb not-prose" data-notebook data-autorun={String(autorun)}>
+  <div class="widget-head">
+    <span class="widget-title">{title}</span>
+    <div class="nb-actions">
+      <button type="button" class="nb-btn" data-act="runall"><span aria-hidden="true">▶</span> Выполнить всё</button>
+      <button type="button" class="nb-btn ghost" data-act="reset" title="Вернуть исходный код">Сброс</button>
+    </div>
+  </div>
+  <div class="nb-cells">
+    {cells.map((code, i) => (
+      <div class="nb-cell" data-original={code.trim()}>
+        <div class="nb-gutter"><span class="nb-count">[ ]</span></div>
+        <div class="nb-main">
+          <div class="nb-editor">
+            <textarea spellcheck="false" autocapitalize="off" autocomplete="off" aria-label={`Ячейка ${i + 1}`}>{code.trim()}</textarea>
+            <button type="button" class="nb-run" title="Выполнить (Shift+Enter)" aria-label="Выполнить ячейку">▶</button>
+          </div>
+          <div class="nb-out" aria-live="polite"></div>
+        </div>
+      </div>
+    ))}
+  </div>
+  <div class="nb-foot">Shift+Enter — выполнить ячейку · код редактируется прямо здесь</div>
+</section>
+
+<script>
+  import { drawPlot, linspace, type Series, type PlotOptions } from '../lib/plot';
+
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+
+  function transform(code: string): string {
+    return code
+      .replace(/^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/gm, '$1 =')
+      .replace(/^(async\s+)?function\s+([A-Za-z_$][\w$]*)\s*\(/gm, '$2 = $1function $2(');
+  }
+
+  function fmtValue(v: unknown): string {
+    if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(+v.toPrecision(10));
+    if (typeof v === 'string') return v;
+    if (typeof v === 'function') return `ƒ ${v.name || 'anonymous'}()`;
+    if (ArrayBuffer.isView(v)) v = Array.from(v as any);
+    try {
+      return JSON.stringify(v, (_k, x) => (typeof x === 'number' && !Number.isInteger(x) ? +x.toPrecision(8) : x), Array.isArray(v) && (v as unknown[]).length > 12 ? 0 : 2)
+        ?.replace(/,(?=\S)/g, ', ') ?? String(v);
+    } catch { return String(v); }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-notebook]').forEach((nb) => {
+    const cells = [...nb.querySelectorAll<HTMLElement>('.nb-cell')];
+    let counter = 0;
+    let scope: Record<string, any>;
+    let plots: (() => void)[] = [];
+
+    function resetScope() {
+      scope = Object.create(null);
+      for (const k of Object.getOwnPropertyNames(Math)) scope[k] = (Math as any)[k];
+      Object.assign(scope, {
+        pi: Math.PI,
+        linspace,
+        range: (n: number) => Array.from({ length: n }, (_, i) => i),
+        sum: (a: number[]) => a.reduce((s, x) => s + x, 0),
+        mean: (a: number[]) => a.reduce((s, x) => s + x, 0) / a.length,
+      });
+      plots = [];
+    }
+    resetScope();
+
+    const proxy = () =>
+      new Proxy(scope, {
+        has: () => true,
+        get: (t, k) => (k === Symbol.unscopables ? undefined : k in t ? t[k as string] : (globalThis as any)[k]),
+        set: (t, k, v) => ((t[k as string] = v), true),
+      });
+
+    function makeIO(out: HTMLElement) {
+      const print = (...args: unknown[]) => {
+        const pre = document.createElement('pre');
+        pre.className = 'nb-text';
+        pre.textContent = args.map(fmtValue).join(' ');
+        out.append(pre);
+      };
+      const plot = (...args: any[]) => {
+        let series: Series[] = [];
+        let opts: PlotOptions & { label?: string } = {};
+        if (typeof args[0] === 'function') {
+          const fs: Function[] = [args[0]];
+          const [a = -5, b = 5] = [args[1], args[2]];
+          opts = args[3] ?? {};
+          const xs = linspace(a, b, 600);
+          series = fs.map((f) => ({ xs, ys: xs.map((x) => +f(x)), label: opts.label }));
+          opts.xRange ??= [a, b];
+        } else if (Array.isArray(args[0]) && typeof args[0][0] === 'object' && args[0][0] !== null && !Array.isArray(args[0][0])) {
+          series = args[0].map((s: any) => ({ xs: s.x, ys: s.y, label: s.label, kind: s.kind, color: s.color }));
+          opts = args[1] ?? {};
+        } else {
+          const ys = args[1] ?? args[0];
+          const xs = args[1] ? args[0] : Array.from(ys, (_: unknown, i: number) => i);
+          opts = args[2] ?? {};
+          series = [{ xs, ys, label: opts.label, kind: (opts as any).kind }];
+        }
+        const c = document.createElement('canvas');
+        c.className = 'nb-plot';
+        out.append(c);
+        const draw = () => drawPlot(c, series, { height: 280, ...opts });
+        draw();
+        plots.push(draw);
+      };
+      const table = (rows: Record<string, unknown>[]) => {
+        const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
+        const t = document.createElement('table');
+        t.className = 'nb-table';
+        t.innerHTML = `<thead><tr>${keys.map((k) => `<th>${k}</th>`).join('')}</tr></thead>`;
+        const tb = document.createElement('tbody');
+        rows.slice(0, 200).forEach((r) => {
+          const tr = document.createElement('tr');
+          keys.forEach((k) => { const td = document.createElement('td'); td.textContent = r[k] === undefined ? '' : fmtValue(r[k]); tr.append(td); });
+          tb.append(tr);
+        });
+        t.append(tb);
+        const wrap = document.createElement('div'); wrap.className = 'nb-table-wrap'; wrap.append(t);
+        out.append(wrap);
+      };
+      const html = (s: string) => { const d = document.createElement('div'); d.innerHTML = s; out.append(d); };
+      return { print, plot, table, html };
+    }
+
+    async function run(cell: HTMLElement) {
+      const ta = cell.querySelector('textarea')!;
+      const out = cell.querySelector<HTMLElement>('.nb-out')!;
+      const count = cell.querySelector<HTMLElement>('.nb-count')!;
+      out.innerHTML = '';
+      cell.classList.add('running');
+      count.textContent = '[*]';
+      Object.assign(scope, makeIO(out));
+      try {
+        const fn = new AsyncFunction('__scope__', `with (__scope__) {\n${transform(ta.value)}\n}`);
+        const res = await fn(proxy());
+        if (res !== undefined) scope.print(res);
+      } catch (err: any) {
+        const pre = document.createElement('pre');
+        pre.className = 'nb-err';
+        pre.textContent = `${err?.name ?? 'Error'}: ${err?.message ?? err}`;
+        out.append(pre);
+      } finally {
+        cell.classList.remove('running');
+        count.textContent = `[${++counter}]`;
+        out.classList.toggle('has', out.childElementCount > 0);
+      }
+    }
+
+    async function runAll() { for (const c of cells) await run(c); }
+
+    const autosize = (ta: HTMLTextAreaElement) => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 2 + 'px'; };
+
+    cells.forEach((cell) => {
+      const ta = cell.querySelector('textarea')!;
+      ta.value = cell.dataset.original!; // атрибут сохраняет отступы, в отличие от сжатого HTML
+      autosize(ta);
+      ta.addEventListener('input', () => autosize(ta));
+      ta.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.shiftKey || e.metaKey || e.ctrlKey)) { e.preventDefault(); run(cell); }
+        else if (e.key === 'Tab' && !e.shiftKey) {
+          e.preventDefault();
+          const s = ta.selectionStart;
+          ta.setRangeText('  ', s, ta.selectionEnd, 'end');
+          autosize(ta);
+        }
+      });
+      cell.querySelector('.nb-run')!.addEventListener('click', () => run(cell));
+    });
+
+    nb.querySelector('[data-act=runall]')!.addEventListener('click', () => { resetScope(); counter = 0; runAll(); });
+    nb.querySelector('[data-act=reset]')!.addEventListener('click', () => {
+      cells.forEach((c) => {
+        const ta = c.querySelector('textarea')!;
+        ta.value = c.dataset.original!;
+        autosize(ta);
+        c.querySelector('.nb-out')!.innerHTML = '';
+        c.querySelector('.nb-out')!.classList.remove('has');
+        c.querySelector('.nb-count')!.textContent = '[ ]';
+      });
+      resetScope(); counter = 0;
+    });
+
+    const redraw = () => setTimeout(() => plots.forEach((d) => d()), 0);
+    addEventListener('themechange', redraw);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+    let rt = 0;
+    new ResizeObserver(() => { clearTimeout(rt); rt = window.setTimeout(redraw, 120); }).observe(nb);
+
+    if (nb.dataset.autorun === 'true') {
+      const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { io.disconnect(); runAll(); } }, { rootMargin: '200px' });
+      io.observe(nb);
+    }
+  });
+</script>
+
+<style>
+  .nb-actions { display: flex; gap: 6px; }
+  .nb-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 999px; border: 1px solid var(--ink);
+    background: var(--ink); color: var(--bg); font: 500 13px var(--font-sans); cursor: pointer;
+  }
+  .nb-btn span { font-size: 10px; }
+  .nb-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .nb-btn.ghost { background: transparent; color: var(--ink-2); border-color: var(--line-strong); }
+  .nb-btn.ghost:hover { color: var(--ink); border-color: var(--ink); background: transparent; }
+
+  .nb-cells { padding: 8px 0; }
+  .nb-cell { display: grid; grid-template-columns: 52px 1fr; padding: 8px 16px 8px 0; }
+  .nb-gutter { text-align: right; padding: 10px 10px 0 0; }
+  .nb-count { font: 12px var(--font-mono); color: var(--ink-3); }
+  .nb-cell.running .nb-count { color: var(--accent); }
+  .nb-main { min-width: 0; }
+  .nb-editor { position: relative; }
+  .nb-editor textarea {
+    display: block; width: 100%; resize: none; overflow: hidden;
+    padding: 10px 44px 10px 14px; min-height: 42px;
+    font: 13.5px/1.6 var(--font-mono); color: var(--ink); tab-size: 2;
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .nb-editor textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .nb-run {
+    position: absolute; right: 6px; top: 6px; width: 30px; height: 30px; border-radius: 8px;
+    border: 0; background: transparent; color: var(--ink-3); font-size: 11px; cursor: pointer;
+  }
+  .nb-run:hover { background: var(--accent-soft); color: var(--accent); }
+  .nb-out.has { padding: 10px 2px 2px; display: grid; gap: 8px; }
+  .nb-out :global(.nb-text), .nb-out :global(.nb-err) { margin: 0; font: 13px/1.55 var(--font-mono); white-space: pre-wrap; word-break: break-word; color: var(--ink-2); }
+  .nb-out :global(.nb-err) { color: #d4380d; }
+  .nb-out :global(.nb-plot) { width: 100%; height: 280px; }
+  .nb-out :global(.nb-table-wrap) { overflow-x: auto; max-height: 320px; border: 1px solid var(--line); border-radius: 8px; }
+  .nb-out :global(.nb-table) { border-collapse: collapse; width: 100%; font: 13px var(--font-mono); }
+  .nb-out :global(.nb-table th), .nb-out :global(.nb-table td) { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+  .nb-out :global(.nb-table th) { position: sticky; top: 0; background: var(--bg-elev); color: var(--ink-2); font-weight: 600; }
+  .nb-foot { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-3); }
+  @media (max-width: 560px) {
+    .nb-cell { grid-template-columns: 1fr; padding: 8px 12px; }
+    .nb-gutter { display: none; }
+    .nb-actions .ghost { display: none; }
+  }
+</style>

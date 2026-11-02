@@ -1,0 +1,123 @@
+---
+title: 'Формулы, графики, WebGL и рабочие книги: что умеет этот блог'
+description: 'Демонстрационная запись: LaTeX, интерактивные графики с параметрами, шейдеры WebGL и вычисления, которые выполняются прямо в браузере.'
+date: 2026-11-01
+tags: [демо, визуализация, webgl]
+---
+
+import FunctionPlot from '../../components/FunctionPlot.astro';
+import ShaderCanvas from '../../components/ShaderCanvas.astro';
+import Notebook from '../../components/Notebook.astro';
+import { domainColoringShader } from '../../lib/shaders';
+
+Эта запись — витрина возможностей сайта. Каждый блок ниже можно скопировать
+в свою статью: достаточно создать файл `.mdx` в папке `src/content/blog/`.
+
+## Формулы LaTeX
+
+Строчные формулы пишутся в долларах: $e^{i\pi} + 1 = 0$. Выключные — в двойных:
+
+$$
+\hat f(\xi) = \int_{-\infty}^{\infty} f(x)\, e^{-2\pi i x \xi}\, dx,
+\qquad
+\nabla \cdot \mathbf{E} = \frac{\rho}{\varepsilon_0}.
+$$
+
+Работают матрицы, выравнивание и всё, что поддерживает [KaTeX](https://katex.org/docs/supported.html):
+
+$$
+\begin{aligned}
+\dot x &= \sigma (y - x), \\
+\dot y &= x(\rho - z) - y, \\
+\dot z &= xy - \beta z.
+\end{aligned}
+$$
+
+## Интерактивный график
+
+Затухающий осциллятор $x(t) = A e^{-\gamma t} \cos(\omega t)$ — двигайте ползунки и
+наводите курсор на график:
+
+<FunctionPlot
+  title="Затухающие колебания"
+  exprs={[
+    { expr: 'A*exp(-g*x)*cos(w*x)', label: 'x(t)' },
+    { expr: 'A*exp(-g*x)', label: 'огибающая' },
+  ]}
+  params={[
+    { name: 'A', min: 0.2, max: 2, value: 1.4 },
+    { name: 'g', label: 'γ', min: 0, max: 1, value: 0.18 },
+    { name: 'w', label: 'ω', min: 0.5, max: 6, value: 2.4 },
+  ]}
+  x={[0, 20]}
+  y={[-2, 2]}
+  xLabel="t"
+/>
+
+## WebGL
+
+Ниже — шейдер, который раскрашивает комплексную плоскость по значениям
+функции $w(z) = \dfrac{(z^2 - 1)(z - c)}{z - m}$. Цвет — аргумент $\arg w$,
+яркость — $\log_2 |w|$. Нули в точках $\pm 1$ и $c(t)$, полюс $m$ следует за курсором.
+
+<ShaderCanvas title="Раскраска области комплексной функции" frag={domainColoringShader} height={380} />
+
+## Рабочая книга
+
+Ячейки можно редактировать и выполнять (Shift+Enter). Переменные из одной
+ячейки видны в следующих — как в Jupyter, только без сервера.
+
+<Notebook
+  title="Метод Эйлера vs точное решение"
+  cells={[
+`// Задача: y' = -k·y,  y(0) = 1.  Точное решение: y = exp(-k·t)
+k = 2
+h = 0.15
+T = 4`,
+`function euler(f, y0, h, T) {
+  const ts = [0], ys = [y0]
+  while (ts.at(-1) < T) {
+    ys.push(ys.at(-1) + h * f(ts.at(-1), ys.at(-1)))
+    ts.push(ts.at(-1) + h)
+  }
+  return { ts, ys }
+}
+sol = euler((t, y) => -k * y, 1, h, T)
+print('шагов:', sol.ts.length - 1, ' y(T) ≈', sol.ys.at(-1))`,
+`exact = sol.ts.map(t => exp(-k * t))
+plot([
+  { x: linspace(0, T), y: linspace(0, T).map(t => exp(-k * t)), label: 'точное' },
+  { x: sol.ts, y: sol.ys, label: 'Эйлер', kind: 'scatter' },
+], { xLabel: 't' })`,
+`// Попробуйте h = 1.1 в первой ячейке — метод станет неустойчивым (|1 − k·h| > 1)
+table(sol.ts.slice(0, 6).map((t, i) => ({
+  t: t.toFixed(2),
+  'Эйлер': sol.ys[i].toFixed(5),
+  'точное': exact[i].toFixed(5),
+  'ошибка': abs(sol.ys[i] - exact[i]).toExponential(2),
+})))`,
+  ]}
+/>
+
+## Код
+
+Подсветка синтаксиса работает для любых языков:
+
+```python
+import numpy as np
+
+def rk4(f, y0, t):
+    y = np.empty((len(t), *np.shape(y0)))
+    y[0] = y0
+    for i in range(len(t) - 1):
+        h = t[i + 1] - t[i]
+        k1 = f(t[i], y[i])
+        k2 = f(t[i] + h / 2, y[i] + h * k1 / 2)
+        k3 = f(t[i] + h / 2, y[i] + h * k2 / 2)
+        k4 = f(t[i] + h, y[i] + h * k3)
+        y[i + 1] = y[i] + h * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    return y
+```
+
+> Все интерактивные блоки работают без сервера, поэтому сайт можно бесплатно
+> разместить на любом статическом хостинге.

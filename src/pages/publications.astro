@@ -1,0 +1,120 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PubItem from '../components/PubItem.astro';
+import Icon from '../components/Icon.astro';
+import { PROFILES, PUB_TYPES } from '../config';
+
+const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year || a.data.title.localeCompare(b.data.title));
+const types = [...new Set(pubs.map((p) => p.data.type))];
+const years = [...new Set(pubs.map((p) => p.data.year))];
+const profileLinks = [
+  PROFILES.scholar && { label: 'Google Scholar', href: PROFILES.scholar, icon: 'scholar' },
+  PROFILES.orcid && { label: 'ORCID', href: PROFILES.orcid, icon: 'orcid' },
+  PROFILES.researchgate && { label: 'ResearchGate', href: PROFILES.researchgate, icon: 'researchgate' },
+  PROFILES.arxiv && { label: 'arXiv', href: PROFILES.arxiv, icon: 'arxiv' },
+  PROFILES.elibrary && { label: 'eLIBRARY', href: PROFILES.elibrary, icon: 'elibrary' },
+].filter(Boolean) as { label: string; href: string; icon: string }[];
+---
+<BaseLayout title="Научные труды" description="Статьи, препринты, доклады и диссертации — с открытыми PDF, DOI и BibTeX.">
+  <section class="container head">
+    <p class="eyebrow">Научные труды</p>
+    <h1>Статьи, препринты и&nbsp;доклады</h1>
+    <p class="lead muted">Работы в открытом доступе — с PDF, кодом и BibTeX для цитирования. Полный и актуальный список — в профилях:</p>
+    {profileLinks.length > 0 && (
+      <div class="profiles">
+        {profileLinks.map((l) => (
+          <a class="chip" href={l.href} target="_blank" rel="noopener"><Icon name={l.icon} size={15} />{l.label}<Icon name="external" size={12} /></a>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section class="container">
+    <div class="toolbar" role="toolbar" aria-label="Фильтр публикаций">
+      <div class="filters">
+        <button class="f active" data-f="all" type="button">Все <span>{pubs.length}</span></button>
+        {types.map((t) => (
+          <button class="f" data-f={t} type="button">{PUB_TYPES[t]} <span>{pubs.filter((p) => p.data.type === t).length}</span></button>
+        ))}
+      </div>
+      <label class="search">
+        <span class="sr-only">Поиск</span>
+        <input type="search" placeholder="Поиск по названию, авторам…" />
+      </label>
+    </div>
+
+    <div class="list">
+      {years.map((y) => (
+        <div class="year-group" data-year-group={y}>
+          <h2 class="year">{y}</h2>
+          <div>
+            {pubs.filter((p) => p.data.year === y).map((p) => (
+              <div class="item" data-type={p.data.type} data-text={`${p.data.title} ${p.data.authors.join(' ')} ${p.data.venue}`.toLowerCase()}>
+                <PubItem pub={p} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <p class="empty" hidden>Ничего не найдено.</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('.f')];
+  const input = document.querySelector<HTMLInputElement>('.search input')!;
+  const items = [...document.querySelectorAll<HTMLElement>('.item')];
+  const groups = [...document.querySelectorAll<HTMLElement>('[data-year-group]')];
+  const empty = document.querySelector<HTMLElement>('.empty')!;
+  let filter = 'all';
+
+  function apply() {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    items.forEach((it) => {
+      const ok = (filter === 'all' || it.dataset.type === filter) && (!q || it.dataset.text!.includes(q));
+      it.hidden = !ok;
+      if (ok) shown++;
+    });
+    groups.forEach((g) => (g.hidden = !g.querySelector('.item:not([hidden])')));
+    empty.hidden = shown > 0;
+  }
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => x.classList.toggle('active', x === b));
+    filter = b.dataset.f!;
+    apply();
+  }));
+  input.addEventListener('input', apply);
+</script>
+
+<style>
+  .head { padding-block: clamp(40px, 7vw, 88px) 32px; }
+  .head h1 { font-size: clamp(36px, 6vw, 64px); margin: 12px 0 20px; max-width: 18ch; }
+  .lead { font-size: 18px; max-width: 58ch; margin: 0 0 18px; }
+  .profiles { display: flex; flex-wrap: wrap; gap: 8px; }
+  .profiles .chip { padding: 7px 13px; font-size: 14px; }
+
+  .toolbar { position: sticky; top: 68px; z-index: 5; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; padding: 14px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .f { font: 500 14px var(--font-sans); padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-2); cursor: pointer; transition: all .15s; }
+  .f span { color: var(--ink-3); font-weight: 400; margin-left: 2px; }
+  .f:hover { border-color: var(--ink-3); color: var(--ink); }
+  .f.active { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+  .f.active span { color: inherit; opacity: .6; }
+  .search input { width: min(280px, 100%); padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink); font: 14px var(--font-sans); }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .search { flex: 0 1 280px; }
+  @media (max-width: 640px) { .search { flex-basis: 100%; } .search input { width: 100%; } .toolbar { position: static; } }
+
+  .year-group { display: grid; grid-template-columns: 120px 1fr; gap: 24px; }
+  .year { font: 400 40px/1 var(--font-serif); color: var(--ink-3); padding-top: 26px; position: sticky; top: 140px; align-self: start; letter-spacing: -0.02em; }
+  .year-group > div > .item:first-child :global(.pub) { border-top-color: var(--line-strong); }
+  .list :global(.pub-year) { display: none; }
+  .empty { padding: 48px 0; color: var(--ink-3); text-align: center; }
+  @media (max-width: 760px) {
+    .year-group { grid-template-columns: 1fr; gap: 0; }
+    .year { position: static; font-size: 28px; padding-top: 32px; }
+  }
+</style>

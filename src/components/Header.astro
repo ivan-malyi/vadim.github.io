@@ -1,0 +1,126 @@
+---
+import { NAV, SITE } from '../config';
+import { url } from '../lib/url';
+import Icon from './Icon.astro';
+
+const path = Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '').replace(/^\/|\/$/g, '');
+const isActive = (href: string) => (href === '' ? path === '' : path === href || path.startsWith(href + '/'));
+---
+<header class="hdr">
+  <div class="container hdr-in">
+    <a href={url()} class="logo" aria-label="На главную">
+      <span class="logo-mark">{SITE.initials}</span>
+      <span class="logo-name">{SITE.name}</span>
+    </a>
+
+    <nav class="nav" id="site-nav" aria-label="Основная навигация">
+      {NAV.map((n) => (
+        <a href={url(n.href)} class:list={['nav-link', { active: isActive(n.href) }]} aria-current={isActive(n.href) ? 'page' : undefined}>
+          {n.label}
+        </a>
+      ))}
+    </nav>
+
+    <div class="hdr-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Сменить тему">
+        <span class="i-sun"><Icon name="sun" /></span>
+        <span class="i-moon"><Icon name="moon" /></span>
+      </button>
+      <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="site-nav">
+        <span class="i-open"><Icon name="menu" /></span>
+        <span class="i-close"><Icon name="close" /></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const root = document.documentElement;
+  const isDark = () =>
+    root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch (e) {}
+    window.dispatchEvent(new CustomEvent('themechange'));
+  });
+
+  const hdr = document.querySelector('.hdr');
+  const btn = document.getElementById('menu-toggle');
+  btn?.addEventListener('click', () => {
+    const open = hdr?.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(!!open));
+  });
+
+  const onScroll = () => hdr?.classList.toggle('scrolled', scrollY > 8);
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>
+
+<style>
+  .hdr {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 78%, transparent);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid transparent;
+    transition: border-color .2s;
+  }
+  .hdr.scrolled { border-bottom-color: var(--line); }
+  .hdr-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 68px; }
+
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink); min-width: 0; }
+  .logo:hover { color: var(--ink); }
+  .logo-mark {
+    display: grid; place-items: center; flex: none;
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--ink); color: var(--bg);
+    font: 600 14px/1 var(--font-sans); letter-spacing: .02em;
+    transition: background .2s, transform .2s;
+  }
+  .logo:hover .logo-mark { background: var(--accent); color: var(--accent-ink); transform: rotate(-6deg); }
+  .logo-name { font: 500 16px/1.2 var(--font-sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .nav { display: flex; gap: 4px; }
+  .nav-link {
+    padding: 8px 14px; border-radius: 999px;
+    font-size: 15px; text-decoration: none; color: var(--ink-2);
+    transition: background .15s, color .15s;
+  }
+  .nav-link:hover { color: var(--ink); background: var(--bg-sunken); }
+  .nav-link.active { color: var(--ink); background: var(--bg-sunken); font-weight: 500; }
+
+  .hdr-actions { display: flex; gap: 4px; }
+  .icon-btn {
+    display: grid; place-items: center; width: 40px; height: 40px;
+    border-radius: 999px; border: 1px solid transparent; background: none; color: var(--ink-2); cursor: pointer;
+  }
+  .icon-btn:hover { color: var(--ink); background: var(--bg-sunken); }
+  .icon-btn > span { display: grid; }
+
+  .i-moon { display: none !important; }
+  :global(:root[data-theme='dark']) .i-sun { display: none !important; }
+  :global(:root[data-theme='dark']) .i-moon { display: grid !important; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .i-sun { display: none !important; }
+    :global(:root:not([data-theme='light'])) .i-moon { display: grid !important; }
+  }
+
+  .menu-btn { display: none; }
+  .i-close { display: none !important; }
+
+  @media (max-width: 760px) {
+    .menu-btn { display: grid; }
+    .nav {
+      position: absolute; top: 68px; left: 0; right: 0;
+      flex-direction: column; gap: 2px;
+      padding: 8px var(--gutter) 16px;
+      background: var(--bg); border-bottom: 1px solid var(--line);
+      display: none;
+    }
+    .hdr.open .nav { display: flex; }
+    .hdr.open .i-open { display: none !important; }
+    .hdr.open .i-close { display: grid !important; }
+    .nav-link { padding: 12px 14px; font-size: 17px; }
+  }
+</style>

@@ -1,0 +1,87 @@
+# ════════════════════════════════════════════════════════════════
+#  СПИСОК НАУЧНЫХ ТРУДОВ
+#  Это ПРИМЕРЫ — замените на реальные работы.
+#
+#  Поля:
+#    id        — уникальный идентификатор (латиница, без пробелов)
+#    title     — название
+#    authors   — список авторов (ваше имя выделится автоматически, см. AUTHOR_ALIASES в src/config.ts)
+#    venue     — журнал / конференция / издательство
+#    year      — год
+#    type      — article | conference | preprint | thesis | book | talk
+#    selected  — true, чтобы показать на главной
+#    open      — true, если работа в открытом доступе
+#    abstract  — аннотация (необязательно)
+#    links     — pdf, doi, arxiv, code, slides, url (любые необязательны).
+#                Номер arXiv пишите в кавычках: arxiv: "2501.00010"
+#                PDF можно положить в папку public/papers/ и указать: pdf: papers/file.pdf
+#    bibtex    — BibTeX-запись (необязательно, появится кнопка «Цитировать»)
+# ════════════════════════════════════════════════════════════════
+
+- id: example-2026-dynamics
+  title: Устойчивость периодических режимов в нелинейных системах с запаздыванием
+  authors: [В. Фамилия, А. Соавтор, Б. Соавтор]
+  venue: Журнал вычислительной математики и математической физики
+  year: 2026
+  type: article
+  selected: true
+  abstract: >
+    Пример аннотации. Исследуется устойчивость периодических решений для класса
+    нелинейных дифференциальных уравнений с запаздыванием. Предложен численный
+    метод, основанный на спектральной дискретизации оператора монодромии.
+  links:
+    doi: 10.0000/example.2026.001
+    pdf: https://example.com/paper.pdf
+    code: https://github.com/
+  bibtex: |
+    @article{familia2026stability,
+      title   = {Устойчивость периодических режимов в нелинейных системах с запаздыванием},
+      author  = {Фамилия, В. and Соавтор, А. and Соавтор, Б.},
+      journal = {Журнал вычислительной математики и математической физики},
+      year    = {2026}
+    }
+
+- id: example-2025-pinn
+  title: Physics-informed neural networks for stiff reaction–diffusion problems
+  authors: [V. Familia, C. Coauthor]
+  venue: arXiv preprint
+  year: 2025
+  type: preprint
+  selected: true
+  abstract: >
+    Example abstract. We study training pathologies of physics-informed neural
+    networks on stiff reaction–diffusion systems and propose an adaptive
+    collocation strategy with provable convergence guarantees.
+  links:
+    arxiv: "2501.00000"
+    code: https://github.com/
+
+- id: example-2024-conf
+  title: Адаптивные сетки для задач с пограничным слоем
+  authors: [В. Фамилия]
+  venue: Международная конференция по вычислительной математике, Новосибирск
+  year: 2024
+  type: conference
+  selected: true
+  links:
+    pdf: https://example.com/conf.pdf
+    slides: https://example.com/slides.pdf
+
+- id: example-2023-thesis
+  title: Численные методы для сингулярно возмущённых задач
+  authors: [В. Фамилия]
+  venue: Магистерская диссертация, Университет
+  year: 2023
+  type: thesis
+  links:
+    pdf: https://example.com/thesis.pdf
+
+- id: example-2023-talk
+  title: Визуализация динамических систем в браузере с помощью WebGL
+  authors: [В. Фамилия]
+  venue: Научный семинар кафедры
+  year: 2023
+  type: talk
+  open: true
+  links:
+    slides: https://example.com/talk.pdf

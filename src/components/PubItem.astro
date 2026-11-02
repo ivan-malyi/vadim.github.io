@@ -1,0 +1,99 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { AUTHOR_ALIASES, PUB_TYPES } from '../config';
+import { url } from '../lib/url';
+import Icon from './Icon.astro';
+
+interface Props { pub: CollectionEntry<'publications'>; compact?: boolean }
+const { pub, compact = false } = Astro.props;
+const d = pub.data;
+
+const href = (v: string) => (/^https?:\/\//.test(v) ? v : url(v));
+const L = d.links;
+const links = [
+  L.pdf && { label: 'PDF', icon: 'pdf', href: href(L.pdf) },
+  L.doi && { label: 'DOI', icon: 'doi', href: `https://doi.org/${L.doi}` },
+  L.arxiv && { label: 'arXiv', icon: 'arxiv', href: `https://arxiv.org/abs/${L.arxiv}` },
+  L.code && { label: 'Код', icon: 'code', href: L.code },
+  L.slides && { label: 'Слайды', icon: 'slides', href: href(L.slides) },
+  L.url && { label: 'Ссылка', icon: 'link', href: L.url },
+].filter(Boolean) as { label: string; icon: string; href: string }[];
+---
+<article class:list={['pub', { compact }]} data-type={d.type} data-year={d.year}>
+  <div class="pub-meta">
+    <span class="pub-year">{d.year}</span>
+    <span class={`pub-type t-${d.type}`}>{PUB_TYPES[d.type]}</span>
+    {d.open && <span class="pub-open" title="Открытый доступ">открытый доступ</span>}
+  </div>
+  <div class="pub-body">
+    <h3 class="pub-title">{links[0] ? <a href={links[0].href} target="_blank" rel="noopener">{d.title}</a> : d.title}</h3>
+    <p class="pub-authors">
+      {d.authors.map((a, i) => (
+        <>{AUTHOR_ALIASES.includes(a) ? <strong>{a}</strong> : a}{i < d.authors.length - 1 ? ', ' : ''}</>
+      ))}
+    </p>
+    <p class="pub-venue">{d.venue}</p>
+
+    {!compact && (links.length > 0 || d.abstract || d.bibtex) && (
+      <div class="pub-actions">
+        {links.map((l) => (
+          <a class="chip" href={l.href} target="_blank" rel="noopener"><Icon name={l.icon} size={14} />{l.label}</a>
+        ))}
+        {d.bibtex && (
+          <button class="chip cite" type="button" data-bib={d.bibtex.trim()}><Icon name="quote" size={14} /><span>BibTeX</span></button>
+        )}
+      </div>
+    )}
+    {!compact && d.abstract && (
+      <details class="pub-abs">
+        <summary>Аннотация</summary>
+        <p>{d.abstract}</p>
+      </details>
+    )}
+  </div>
+</article>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.cite').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const span = b.querySelector('span')!;
+      try { await navigator.clipboard.writeText(b.dataset.bib!); span.textContent = 'Скопировано'; }
+      catch { span.textContent = 'Не удалось'; }
+      setTimeout(() => (span.textContent = 'BibTeX'), 1600);
+    }),
+  );
+</script>
+
+<style>
+  .pub { display: grid; grid-template-columns: 150px 1fr; gap: 24px; padding: 28px 0; border-top: 1px solid var(--line); }
+  .pub-meta { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .pub-year { font: 500 15px var(--font-mono); color: var(--ink); }
+  .pub-type { font-size: 12px; padding: 3px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 500; }
+  .pub-open { font-size: 11.5px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+  .pub-open::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2fa36b; }
+  .pub-title { font-size: 21px; line-height: 1.3; }
+  .pub-title a { text-decoration: none; }
+  .pub-title a:hover { text-decoration: underline; }
+  .pub-authors { margin: 8px 0 2px; color: var(--ink-2); font-size: 15.5px; }
+  .pub-authors strong { color: var(--ink); font-weight: 600; }
+  .pub-venue { margin: 0; color: var(--ink-3); font-size: 15px; font-style: italic; font-family: var(--font-serif); }
+  .pub-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .cite { cursor: pointer; font: inherit; font-size: 13px; }
+  .cite:hover { border-color: var(--accent); color: var(--accent); }
+  .pub-abs { margin-top: 12px; font-size: 15px; color: var(--ink-2); }
+  .pub-abs summary { cursor: pointer; color: var(--ink-3); font-size: 14px; width: fit-content; }
+  .pub-abs summary:hover { color: var(--accent); }
+  .pub-abs p { margin: 8px 0 0; max-width: 68ch; }
+
+  .compact { grid-template-columns: 1fr; gap: 10px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); transition: border-color .2s, transform .2s, box-shadow .2s; height: 100%; align-content: start; }
+  .compact:hover { border-color: var(--line-strong); transform: translateY(-3px); box-shadow: var(--shadow); }
+  .compact .pub-meta { flex-direction: row; align-items: center; }
+  .compact .pub-title { font-size: 19px; }
+  .compact .pub-authors { font-size: 14.5px; }
+  .compact .pub-venue { font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .pub { grid-template-columns: 1fr; gap: 10px; }
+    .pub-meta { flex-direction: row; align-items: center; flex-wrap: wrap; }
+  }
+</style>

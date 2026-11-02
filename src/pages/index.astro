@@ -1,0 +1,140 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ShaderCanvas from '../components/ShaderCanvas.astro';
+import PubItem from '../components/PubItem.astro';
+import PostRow from '../components/PostRow.astro';
+import Socials from '../components/Socials.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../config';
+import { url } from '../lib/url';
+import { heroShader } from '../lib/shaders';
+
+const pubs = (await getCollection('publications')).sort((a, b) => b.data.year - a.data.year);
+const selected = pubs.filter((p) => p.data.selected).slice(0, 3);
+const posts = (await getCollection('blog', (p) => !p.data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+const stats = [
+  { n: pubs.filter((p) => p.data.type !== 'talk').length, l: 'публикаций' },
+  { n: pubs.filter((p) => p.data.type === 'talk' || p.data.type === 'conference').length, l: 'докладов' },
+  { n: (await getCollection('blog', (p) => !p.data.draft)).length, l: 'записей в блоге' },
+];
+---
+<BaseLayout>
+  <section class="hero" data-shader-host>
+    <ShaderCanvas frag={heroShader} bare height="100%" class="hero-bg" />
+    <div class="container hero-in">
+      <p class="eyebrow hero-eyebrow"><span class="dot"></span>{SITE.role}</p>
+      <h1 class="hero-title">{SITE.name}</h1>
+      <p class="hero-tag">{SITE.tagline}</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href={url('publications')}>Научные труды <Icon name="arrow" /></a>
+        <a class="btn" href={url('about')}>Обо мне</a>
+      </div>
+      <div class="hero-meta">
+        <span><Icon name="building" size={16} />{SITE.affiliation}</span>
+        <span><Icon name="pin" size={16} />{SITE.location}</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="container strip reveal">
+    <div class="interests">
+      <span class="eyebrow">Направления</span>
+      <ul>{SITE.interests.map((i) => <li>{i}</li>)}</ul>
+    </div>
+    <dl class="stats">
+      {stats.map((s) => <div><dt>{s.n}</dt><dd>{s.l}</dd></div>)}
+    </dl>
+  </section>
+
+  {selected.length > 0 && (
+    <section class="container section">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Избранное</p>
+          <h2>Научные труды</h2>
+        </div>
+        <a class="link-arrow" href={url('publications')}>Все работы <Icon name="arrow" size={16} /></a>
+      </div>
+      <div class="pub-grid">
+        {selected.map((p) => <div class="reveal"><PubItem pub={p} compact /></div>)}
+      </div>
+    </section>
+  )}
+
+  {posts.length > 0 && (
+    <section class="container section posts">
+      <div class="section-head reveal">
+        <div>
+          <p class="eyebrow">Блог</p>
+          <h2>Последние записи</h2>
+        </div>
+        <a class="link-arrow" href={url('blog')}>Все записи <Icon name="arrow" size={16} /></a>
+      </div>
+      <div class="reveal">{posts.map((p) => <PostRow post={p} />)}</div>
+    </section>
+  )}
+
+  <section class="container section contact reveal">
+    <div class="contact-card">
+      <div>
+        <p class="eyebrow">Связаться</p>
+        <h2>Открыт к сотрудничеству, докладам и&nbsp;научным дискуссиям</h2>
+      </div>
+      <div class="contact-side">
+        <a class="btn btn-primary" href={`mailto:${SITE.email}`}><Icon name="mail" /> Написать письмо</a>
+        <Socials />
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero { position: relative; min-height: min(88vh, 820px); display: flex; align-items: center; margin-top: -68px; padding-top: 68px; overflow: hidden; }
+  .hero :global(.hero-bg) { position: absolute; inset: 0; }
+  .hero-in { position: relative; padding-block: 80px; pointer-events: none; }
+  .hero-in a, .hero-in button { pointer-events: auto; }
+  .hero-eyebrow { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 28px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 8px transparent; } }
+  .hero-title { font-size: clamp(48px, 9vw, 112px); font-weight: 400; letter-spacing: -0.035em; line-height: .98; max-width: 11ch; }
+  .hero-tag { font-size: clamp(18px, 2.2vw, 22px); line-height: 1.5; color: var(--ink-2); max-width: 36ch; margin: 28px 0 36px; }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 40px; font-size: 14px; color: var(--ink-3); }
+  .hero-meta span { display: inline-flex; gap: 8px; align-items: center; }
+  .hero-in > * { animation: rise .9s cubic-bezier(.2,.7,.2,1) both; }
+  .hero-in > :nth-child(2) { animation-delay: .08s; }
+  .hero-in > :nth-child(3) { animation-delay: .16s; }
+  .hero-in > :nth-child(4) { animation-delay: .24s; }
+  .hero-in > :nth-child(5) { animation-delay: .32s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } }
+  @media (prefers-reduced-motion: reduce) { .hero-in > *, .dot { animation: none; } }
+
+  .strip { display: flex; justify-content: space-between; align-items: center; gap: 32px; flex-wrap: wrap; padding-block: 28px; border-block: 1px solid var(--line); }
+  .interests { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .interests ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .interests li { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); font-size: 14px; color: var(--ink-2); }
+  .stats { display: flex; gap: 36px; margin: 0; }
+  .stats div { display: flex; flex-direction: column; }
+  .stats dt { font: 400 34px/1 var(--font-serif); letter-spacing: -0.02em; }
+  .stats dd { margin: 6px 0 0; font-size: 13px; color: var(--ink-3); }
+
+  .pub-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+
+  .contact { padding-top: 0; }
+  .contact-card {
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: end;
+    padding: clamp(28px, 5vw, 56px); border-radius: calc(var(--radius) * 1.6);
+    background: var(--bg-elev); border: 1px solid var(--line); box-shadow: var(--shadow);
+    position: relative; overflow: hidden;
+  }
+  .contact-card::after {
+    content: ''; position: absolute; right: -120px; top: -120px; width: 340px; height: 340px; border-radius: 50%;
+    background: radial-gradient(closest-side, var(--accent-soft), transparent); pointer-events: none;
+  }
+  .contact-card h2 { font-size: clamp(26px, 3.6vw, 40px); max-width: 18ch; margin-top: 10px; }
+  .contact-side { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; position: relative; z-index: 1; }
+  @media (max-width: 760px) { .contact-card { grid-template-columns: 1fr; } }
+</style>

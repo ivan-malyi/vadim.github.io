@@ -1,0 +1,111 @@
+---
+/**
+ * Интерактивный график функции с ползунками параметров.
+ *
+ * <FunctionPlot
+ *   title="Затухающие колебания"
+ *   exprs={[{ expr: 'A*exp(-g*x)*cos(w*x)', label: 'x(t)' }]}
+ *   params={[{ name: 'A', min: 0, max: 2, value: 1 }, ...]}
+ *   x={[0, 20]} y={[-2, 2]} />
+ *
+ * В выражениях доступны все функции Math без префикса: sin, cos, exp, sqrt, PI, ...
+ */
+interface Param { name: string; min: number; max: number; value: number; step?: number; label?: string }
+interface Curve { expr: string; label?: string }
+interface Props {
+  title?: string;
+  exprs: Curve[];
+  params?: Param[];
+  x?: [number, number];
+  y?: [number, number];
+  xLabel?: string;
+  yLabel?: string;
+  height?: number;
+}
+const { title = 'Интерактивный график', exprs, params = [], x = [-5, 5], y, xLabel, yLabel, height = 320 } = Astro.props;
+const cfg = JSON.stringify({ exprs, params, x, y, xLabel, yLabel, height });
+---
+<figure class="widget fplot not-prose" data-fplot={cfg}>
+  <div class="widget-head">
+    <span class="widget-title">{title}</span>
+    <span class="widget-tag">график</span>
+  </div>
+  <div class="fplot-canvas-wrap">
+    <canvas style={`height:${height}px`}></canvas>
+    <div class="fplot-readout" aria-live="polite"></div>
+  </div>
+  {params.length > 0 && (
+    <div class="fplot-params">
+      {params.map((p) => (
+        <label class="fplot-param">
+          <span class="fplot-name">{p.label ?? p.name}</span>
+          <input type="range" data-name={p.name} min={p.min} max={p.max} step={p.step ?? (p.max - p.min) / 200} value={p.value} />
+          <output>{p.value}</output>
+        </label>
+      ))}
+    </div>
+  )}
+</figure>
+
+<script>
+  import { drawPlot, linspace, type Series } from '../lib/plot';
+
+  const MATH = Object.getOwnPropertyNames(Math);
+  const mathVals = MATH.map((k) => (Math as any)[k]);
+
+  document.querySelectorAll<HTMLElement>('[data-fplot]').forEach((root) => {
+    const cfg = JSON.parse(root.dataset.fplot!);
+    const canvas = root.querySelector('canvas')!;
+    const readout = root.querySelector<HTMLElement>('.fplot-readout')!;
+    const inputs = [...root.querySelectorAll<HTMLInputElement>('input[type=range]')];
+    const pNames: string[] = cfg.params.map((p: any) => p.name);
+    const fns = cfg.exprs.map((c: any) => new Function(...MATH, 'pi', ...pNames, 'x', `return (${c.expr});`));
+    const xs = linspace(cfg.x[0], cfg.x[1], 600);
+    let handle: ReturnType<typeof drawPlot> | null = null;
+    let current: Series[] = [];
+
+    const values = () => inputs.map((i) => parseFloat(i.value));
+    const fmt = (v: number) => (Math.abs(v) >= 100 ? v.toFixed(0) : Math.abs(v) >= 10 ? v.toFixed(1) : v.toFixed(2));
+
+    function render() {
+      const pv = values();
+      current = fns.map((f: Function, i: number) => ({
+        xs,
+        ys: xs.map((x) => { try { return f(...mathVals, Math.PI, ...pv, x); } catch { return NaN; } }),
+        label: cfg.exprs[i].label,
+      }));
+      handle = drawPlot(canvas, current, { xRange: cfg.x, yRange: cfg.y, xLabel: cfg.xLabel, yLabel: cfg.yLabel, height: cfg.height });
+      inputs.forEach((inp) => { (inp.nextElementSibling as HTMLOutputElement).value = fmt(parseFloat(inp.value)); });
+    }
+
+    let raf = 0;
+    const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+    inputs.forEach((i) => i.addEventListener('input', schedule));
+    new ResizeObserver(schedule).observe(canvas);
+    window.addEventListener('themechange', () => setTimeout(schedule, 0));
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', schedule);
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!handle) return;
+      const r = canvas.getBoundingClientRect();
+      const px = e.clientX - r.left, py = e.clientY - r.top;
+      if (!handle.inside(px, py)) { readout.textContent = ''; return; }
+      const [x] = handle.toData(px, py);
+      const pv = values();
+      readout.textContent = `x = ${fmt(x)}  ` + fns.map((f: Function, i: number) => `${cfg.exprs[i].label ?? 'y'} = ${fmt(f(...mathVals, Math.PI, ...pv, x))}`).join('  ');
+    });
+    canvas.addEventListener('pointerleave', () => (readout.textContent = ''));
+  });
+</script>
+
+<style>
+  .fplot-canvas-wrap { position: relative; padding: 12px 12px 4px; }
+  .fplot canvas { width: 100%; touch-action: none; cursor: crosshair; }
+  .fplot-readout { position: absolute; right: 22px; top: 18px; font: 12px var(--font-mono); color: var(--ink-2); background: color-mix(in srgb, var(--bg-elev) 85%, transparent); padding: 2px 6px; border-radius: 6px; pointer-events: none; white-space: pre; }
+  .fplot-readout:empty { display: none; }
+  .fplot-params { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 24px; padding: 14px 16px 16px; border-top: 1px solid var(--line); }
+  .fplot-param { display: grid; grid-template-columns: auto 1fr 3.2em; align-items: center; gap: 10px; }
+  .fplot-name { font: 500 14px var(--font-mono); color: var(--ink-2); min-width: 1.2em; }
+  .fplot-param output { font: 13px var(--font-mono); color: var(--ink); text-align: right; }
+  .fplot input[type=range] { width: 100%; accent-color: var(--accent); }
+</style>

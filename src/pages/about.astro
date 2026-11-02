@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Socials from '../components/Socials.astro';
+import Icon from '../components/Icon.astro';
+import { SITE, TIMELINE, SKILLS, PHOTO } from '../config';
+import { url } from '../lib/url';
+import { Content as Bio } from '../data/about.md';
+---
+<BaseLayout title="Обо мне" description={`${SITE.name} — ${SITE.role}. Биография, образование, контакты.`}>
+  <section class="container about">
+    <aside class="side">
+      <div class="portrait">
+        {PHOTO ? <img src={url(PHOTO)} alt={SITE.name} width="480" height="600" /> : <span>{SITE.initials}</span>}
+      </div>
+      <div class="card">
+        <p class="name">{SITE.name}</p>
+        <p class="muted role">{SITE.role}</p>
+        <ul class="facts">
+          <li><Icon name="building" size={16} />{SITE.affiliation}</li>
+          <li><Icon name="pin" size={16} />{SITE.location}</li>
+          <li><Icon name="mail" size={16} /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        </ul>
+        <Socials />
+      </div>
+    </aside>
+
+    <div class="main">
+      <p class="eyebrow">Обо мне</p>
+      <h1>Математика, код и&nbsp;визуализация</h1>
+      <div class="prose bio"><Bio /></div>
+
+      <h2 class="sub">Путь</h2>
+      <ol class="timeline">
+        {TIMELINE.map((t) => (
+          <li>
+            <span class="period">{t.period}</span>
+            <div>
+              <p class="t-title">{t.title}</p>
+              <p class="t-place">{t.place}</p>
+              {t.note && <p class="t-note">{t.note}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <h2 class="sub">Инструменты</h2>
+      <ul class="skills">{SKILLS.map((s) => <li>{s}</li>)}</ul>
+
+      <div class="cta">
+        <a class="btn btn-primary" href={url('publications')}>Научные труды <Icon name="arrow" /></a>
+        <a class="btn" href={url('blog')}>Читать блог</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .about { display: grid; grid-template-columns: 320px 1fr; gap: clamp(32px, 6vw, 88px); padding-block: clamp(40px, 7vw, 88px); align-items: start; }
+  .side { position: sticky; top: 92px; display: grid; gap: 20px; }
+  .portrait {
+    aspect-ratio: 4 / 5; border-radius: calc(var(--radius) * 1.4); overflow: hidden;
+    background:
+      radial-gradient(120% 80% at 20% 10%, var(--accent-soft), transparent 60%),
+      linear-gradient(160deg, var(--bg-elev), var(--bg-sunken));
+    border: 1px solid var(--line); display: grid; place-items: center;
+  }
+  .portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .portrait span { font: 400 96px/1 var(--font-serif); color: var(--accent); letter-spacing: -0.04em; }
+  .card { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-elev); }
+  .name { margin: 0; font: 500 20px var(--font-serif); }
+  .role { margin: 4px 0 16px; font-size: 14px; }
+  .facts { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 8px; font-size: 14px; color: var(--ink-2); }
+  .facts li { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  .facts a { overflow: hidden; text-overflow: ellipsis; }
+
+  .main h1 { font-size: clamp(36px, 5.5vw, 60px); margin: 12px 0 32px; max-width: 16ch; }
+  .bio { max-width: var(--maxw-prose); }
+  .sub { font-size: 28px; margin: 64px 0 24px; }
+
+  .timeline { list-style: none; padding: 0; margin: 0; border-left: 1px solid var(--line); }
+  .timeline li { position: relative; display: grid; grid-template-columns: 150px 1fr; gap: 20px; padding: 0 0 28px 28px; }
+  .timeline li::before { content: ''; position: absolute; left: -5px; top: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+  .timeline li:first-child::before { background: var(--accent); }
+  .period { font: 13px/1.9 var(--font-mono); color: var(--ink-3); }
+  .t-title { margin: 0; font-weight: 500; }
+  .t-place { margin: 2px 0 0; color: var(--ink-2); font-size: 15px; }
+  .t-note { margin: 6px 0 0; color: var(--ink-3); font-size: 14.5px; }
+
+  .skills { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .skills li { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); font: 13px var(--font-mono); color: var(--ink-2); }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 56px; }
+
+  @media (max-width: 860px) {
+    .about { grid-template-columns: 1fr; }
+    .side { position: static; grid-template-columns: 160px 1fr; align-items: start; }
+    .portrait span { font-size: 56px; }
+  }
+  @media (max-width: 520px) {
+    .side { grid-template-columns: 1fr; }
+    .portrait { max-width: 180px; }
+    .timeline li { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>

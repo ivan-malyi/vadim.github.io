@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+import katex from 'katex';
+const f = katex.renderToString(String.raw`\lim_{x \to \text{?}} \, \text{page}(x)`, { throwOnError: false });
+---
+<BaseLayout title="Страница не найдена">
+  <section class="container nf">
+    <p class="eyebrow">Ошибка 404</p>
+    <h1><span set:html={f} /> не существует</h1>
+    <p class="muted">Такой страницы нет — возможно, она переехала или в ссылке опечатка.</p>
+    <a class="btn btn-primary" href={url()}>На главную</a>
+  </section>
+</BaseLayout>
+<style>
+  .nf { padding-block: clamp(80px, 16vw, 180px); text-align: center; display: grid; justify-items: center; gap: 12px; }
+  h1 { font-size: clamp(36px, 7vw, 72px); font-style: italic; }
+  p.muted { margin: 4px 0 24px; }
+</style>

@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { url, formatDate, readingTime } from '../lib/url';
+import Icon from './Icon.astro';
+
+interface Props { post: CollectionEntry<'blog'> }
+const { post } = Astro.props;
+const { title, description, date, tags } = post.data;
+---
+<a class="post" href={url(`blog/${post.id}`)}>
+  <time datetime={date.toISOString()}>{formatDate(date)}</time>
+  <div class="post-main">
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <div class="post-tags">
+      {tags.map((t) => <span>#{t}</span>)}
+      <span class="rt">{readingTime(post.body)} мин чтения</span>
+    </div>
+  </div>
+  <span class="post-arrow"><Icon name="arrow" size={20} /></span>
+</a>
+
+<style>
+  .post {
+    display: grid; grid-template-columns: 170px 1fr 28px; gap: 24px; align-items: start;
+    padding: 28px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--ink);
+  }
+  .post:hover { color: var(--ink); }
+  time { font: 13px/1.9 var(--font-mono); color: var(--ink-3); }
+  h3 { font-size: 24px; transition: color .15s; }
+  .post:hover h3 { color: var(--accent); }
+  p { margin: 8px 0 0; color: var(--ink-2); max-width: 62ch; }
+  .post-tags { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 13px; color: var(--ink-3); }
+  .rt { margin-left: auto; }
+  .post-arrow { color: var(--ink-3); padding-top: 4px; transition: transform .2s, color .2s; }
+  .post:hover .post-arrow { color: var(--accent); transform: translateX(4px); }
+  @media (max-width: 640px) {
+    .post { grid-template-columns: 1fr; gap: 6px; }
+    .post-arrow { display: none; }
+    .rt { margin-left: 0; }
+  }
+</style>

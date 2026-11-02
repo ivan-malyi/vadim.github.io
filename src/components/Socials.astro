@@ -1,0 +1,43 @@
+---
+import { PROFILES, SITE } from '../config';
+import Icon from './Icon.astro';
+
+const LABELS: Record<string, string> = {
+  scholar: 'Google Scholar',
+  orcid: 'ORCID',
+  researchgate: 'ResearchGate',
+  arxiv: 'arXiv',
+  github: 'GitHub',
+  telegram: 'Telegram',
+  linkedin: 'LinkedIn',
+  elibrary: 'eLIBRARY',
+};
+const items = Object.entries(PROFILES).filter(([, v]) => v);
+interface Props { withEmail?: boolean; labels?: boolean }
+const { withEmail = false, labels = false } = Astro.props;
+---
+<ul class:list={['socials', { labeled: labels }]}>
+  {withEmail && (
+    <li><a href={`mailto:${SITE.email}`} aria-label="Email" title="Email"><Icon name="mail" />{labels && <span>Email</span>}</a></li>
+  )}
+  {items.map(([k, v]) => (
+    <li>
+      <a href={v} target="_blank" rel="noopener me" aria-label={LABELS[k]} title={LABELS[k]}>
+        <Icon name={k} />{labels && <span>{LABELS[k]}</span>}
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .socials { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .socials a {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-width: 42px; height: 42px; padding: 0 11px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-2);
+    text-decoration: none; font-size: 14px;
+    transition: border-color .15s, color .15s, transform .15s;
+  }
+  .socials a:hover { color: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
+  .labeled a { padding: 0 14px 0 12px; }
+</style>

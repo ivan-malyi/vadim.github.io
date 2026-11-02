@@ -1,0 +1,31 @@
+---
+import { SITE } from '../config';
+import { url } from '../lib/url';
+import Socials from './Socials.astro';
+import Icon from './Icon.astro';
+const year = new Date().getFullYear();
+---
+<footer class="ftr">
+  <div class="container ftr-in">
+    <div class="ftr-main">
+      <p class="ftr-cta">Есть идея для совместной работы?</p>
+      <a class="ftr-mail" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </div>
+    <div class="ftr-side">
+      <Socials />
+    </div>
+  </div>
+  <div class="container ftr-bottom">
+    <span>© {year} {SITE.name}</span>
+    <a href={url('rss.xml')} class="rss"><Icon name="rss" size={14} /> RSS</a>
+  </div>
+</footer>
+
+<style>
+  .ftr { border-top: 1px solid var(--line); margin-top: 48px; }
+  .ftr-in { display: flex; justify-content: space-between; align-items: end; gap: 32px; flex-wrap: wrap; padding-block: 56px 40px; }
+  .ftr-cta { margin: 0 0 8px; color: var(--ink-3); font-size: 15px; }
+  .ftr-mail { font-family: var(--font-serif); font-size: clamp(24px, 4vw, 36px); text-decoration: none; letter-spacing: -0.01em; word-break: break-all; }
+  .ftr-bottom { display: flex; justify-content: space-between; gap: 16px; padding-block: 20px 32px; font-size: 14px; color: var(--ink-3); border-top: 1px solid var(--line); }
+  .rss { display: inline-flex; gap: 6px; align-items: center; text-decoration: none; color: var(--ink-3); }
+</style>

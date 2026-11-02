@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostRow from '../../components/PostRow.astro';
+import Icon from '../../components/Icon.astro';
+import { url } from '../../lib/url';
+
+const posts = (await getCollection('blog', (p) => !p.data.draft)).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+---
+<BaseLayout title="Блог" description="Заметки о математике, численных методах и научной визуализации.">
+  <section class="container head">
+    <p class="eyebrow">Блог</p>
+    <h1>Заметки о&nbsp;математике, коде и&nbsp;визуализации</h1>
+    <div class="row">
+      {tags.length > 0 && (
+        <div class="tags">
+          <button class="tag active" data-tag="" type="button">все</button>
+          {tags.map((t) => <button class="tag" data-tag={t} type="button">#{t}</button>)}
+        </div>
+      )}
+      <a class="chip" href={url('rss.xml')}><Icon name="rss" size={14} />RSS</a>
+    </div>
+  </section>
+  <section class="container list">
+    {posts.length === 0 && <p class="muted">Скоро здесь появятся записи.</p>}
+    {posts.map((p) => <div class="item" data-tags={p.data.tags.join(' ')}><PostRow post={p} /></div>)}
+  </section>
+</BaseLayout>
+
+<script>
+  const btns = [...document.querySelectorAll<HTMLButtonElement>('.tag')];
+  const items = [...document.querySelectorAll<HTMLElement>('.item')];
+  btns.forEach((b) => b.addEventListener('click', () => {
+    btns.forEach((x) => x.classList.toggle('active', x === b));
+    const t = b.dataset.tag;
+    items.forEach((i) => (i.hidden = !!t && !i.dataset.tags!.split(' ').includes(t)));
+  }));
+</script>
+
+<style>
+  .head { padding-block: clamp(40px, 7vw, 88px) 24px; }
+  .head h1 { font-size: clamp(36px, 6vw, 64px); margin: 12px 0 28px; max-width: 18ch; }
+  .row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: center; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font: 14px var(--font-sans); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg-elev); color: var(--ink-2); cursor: pointer; }
+  .tag:hover { color: var(--ink); border-color: var(--ink-3); }
+  .tag.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .list { padding-bottom: 40px; }
+</style>
