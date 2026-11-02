@@ -132,7 +132,7 @@ export function drawPlot(canvas: HTMLCanvasElement, series: Series[], opts: Plot
   // Легенда
   const labeled = series.filter((s) => s.label);
   if (labeled.length) {
-    ctx.font = '12px Inter, system-ui, sans-serif';
+    ctx.font = '12px "Inter Variable", Inter, system-ui, sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
     let lx = m.l + 10;
     series.forEach((s, i) => {
