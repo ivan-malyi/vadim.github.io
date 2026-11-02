@@ -6,9 +6,9 @@
  */
 export const SITE = {
   /** Имя, как оно будет показано на сайте */
-  name: 'Вадим Фамилия', // TODO
+  name: 'Вадим Ващенко',
   /** Короткое имя для логотипа (инициалы) */
-  initials: 'ВФ', // TODO
+  initials: 'ВВ',
   /** Должность / роль */
   role: 'Исследователь · прикладная математика', // TODO
   /** Место работы */
@@ -52,7 +52,7 @@ export const NAV = [
  * Варианты написания вашего имени в списках авторов —
  * они будут выделены жирным на странице трудов.
  */
-export const AUTHOR_ALIASES = ['В. Фамилия', 'V. Familia', 'Фамилия В.', 'Вадим Фамилия']; // TODO
+export const AUTHOR_ALIASES = ['В. Ващенко', 'V. Vashchenko', 'Ващенко В.', 'Вадим Ващенко', 'Vadim Vashchenko']; // TODO
 
 export const PUB_TYPES: Record<string, string> = {
   article: 'Статья',

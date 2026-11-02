@@ -20,7 +20,7 @@
 
 - id: example-2026-dynamics
   title: Устойчивость периодических режимов в нелинейных системах с запаздыванием
-  authors: [В. Фамилия, А. Соавтор, Б. Соавтор]
+  authors: [В. Ващенко, А. Соавтор, Б. Соавтор]
   venue: Журнал вычислительной математики и математической физики
   year: 2026
   type: article
@@ -34,16 +34,16 @@
     pdf: https://example.com/paper.pdf
     code: https://github.com/
   bibtex: |
-    @article{familia2026stability,
+    @article{vashchenko2026stability,
       title   = {Устойчивость периодических режимов в нелинейных системах с запаздыванием},
-      author  = {Фамилия, В. and Соавтор, А. and Соавтор, Б.},
+      author  = {Ващенко, В. and Соавтор, А. and Соавтор, Б.},
       journal = {Журнал вычислительной математики и математической физики},
       year    = {2026}
     }
 
 - id: example-2025-pinn
   title: Physics-informed neural networks for stiff reaction–diffusion problems
-  authors: [V. Familia, C. Coauthor]
+  authors: [V. Vashchenko, C. Coauthor]
   venue: arXiv preprint
   year: 2025
   type: preprint
@@ -58,7 +58,7 @@
 
 - id: example-2024-conf
   title: Адаптивные сетки для задач с пограничным слоем
-  authors: [В. Фамилия]
+  authors: [В. Ващенко]
   venue: Международная конференция по вычислительной математике, Новосибирск
   year: 2024
   type: conference
@@ -69,7 +69,7 @@
 
 - id: example-2023-thesis
   title: Численные методы для сингулярно возмущённых задач
-  authors: [В. Фамилия]
+  authors: [В. Ващенко]
   venue: Магистерская диссертация, Университет
   year: 2023
   type: thesis
@@ -78,7 +78,7 @@
 
 - id: example-2023-talk
   title: Визуализация динамических систем в браузере с помощью WebGL
-  authors: [В. Фамилия]
+  authors: [В. Ващенко]
   venue: Научный семинар кафедры
   year: 2023
   type: talk
